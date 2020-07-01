@@ -1,5 +1,7 @@
 package kr.com.lkj.java8to11;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.function.*;
 
 public class Foo {
@@ -8,7 +10,8 @@ public class Foo {
         //unction1();
         //function2();
         //function3();
-        function4();
+        //function4();
+        function5();
     }
 
     /**
@@ -149,5 +152,38 @@ public class Foo {
             System.out.println(num+baseNumber); //익명 클래스는 새로 스콥을 만들지만, 람다는 람다를 감싸고 있는 스콥과 같다.
 
         };
+    }
+
+    /**
+     * 메소드 레퍼런스
+     * 기존 메소드 또는 생성자를 호출하는 거라면, 메소드 레퍼런스를 사용해서
+     * 매우 간결하게 표현 가능
+     */
+    public static void function5() {
+
+        //스태틱 메소드 참조
+        //UnaryOperator<String> hi = (s) -> "hi " + s;
+        UnaryOperator<String> hi = Greeting::hi;    //hi의 구현체로 선언되어 있던 함수를 사용
+        System.out.println(hi.apply("KyungJin"));   //함수 실행
+
+        //특정 객체의 인스턴스 메소드 참조
+        Greeting greeting = new Greeting();
+        UnaryOperator<String> hello = greeting::hello;  //멤버함수
+        System.out.println(hello.apply("KyungJin"));    //함수 실행
+
+        //생성자 참조
+        Supplier<Greeting> makeGreeting1 = Greeting::new; //생성자(함수) 이용
+        System.out.println(makeGreeting1.get());//생성자가 만들어짐
+
+        Function<String, Greeting> makeGreeting2 = Greeting::new;   //뒤의 생성자 선언은 바로 위와 같지만 다른 생성자를 쓰게됨
+        System.out.println(makeGreeting2.apply("KyungJin"));
+
+        //임의 객체의 인스턴스 메소드 참조
+        String[] names = {"Kyungjin", "LKJ", "King"};
+
+        //2번째 파라미터가 함수형 인터페이스이기 때문에 람다를 넣을 수 있음
+        //람다를 넣을 수 있다는 것은 메서드 레퍼런스를 사용할 수 있음
+        Arrays.sort(names, String::compareToIgnoreCase);
+        System.out.println(Arrays.toString(names));
     }
 }
