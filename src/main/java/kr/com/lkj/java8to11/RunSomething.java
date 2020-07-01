@@ -13,7 +13,7 @@ public interface RunSomething {
         System.out.println("LKJ");
     }
 
-    //default메서드 정의 가능
+    //default 메서드 정의 가능
     default void printAge() {
         System.out.println("33?");
     }
