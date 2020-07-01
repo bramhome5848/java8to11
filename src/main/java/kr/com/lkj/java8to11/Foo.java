@@ -7,7 +7,8 @@ public class Foo {
     public static void main(String[] args) {
         //unction1();
         //function2();
-        function3();;
+        //function3();
+        function4();
     }
 
     /**
@@ -98,5 +99,55 @@ public class Foo {
 
         BinaryOperator<Integer> sum = (num1, num2) -> num1+num2;
         System.out.println(sum.apply(10, 20));
+    }
+
+    /**
+     * 람다 표현식
+     * (인자 리스트) -> {바디} //생략 가능한 부분들이 있음
+     * 바디
+     * 화상표 오른쪽에 함수 본문을 정의한다.
+     * 여러줄인경우에{}를사용해서묶는다.
+     * 한 줄인 경우에 생략 가능, return 도 생략 가능.
+     */
+    public static void function4() {
+        //인자가없을때:()
+        Supplier<Integer> get10 = () -> 10;
+
+        //인자가 2개 이상일때
+        //type 명시도 가능
+        //인자의 타입은 생략 가능, 컴파일러가 추론(infer)하지만 명시할 수도 있음
+        BinaryOperator<Integer> sum = (Integer num1, Integer num2) -> num1+num2;
+
+        //로컬 변수 캡쳐
+        //final 이거나 effective final 인 경우에만 참조 가능.
+        //자바 8부터 지원하는 기능으로 “사실상" final 인 변수.
+        //effective final인 경우는 final 키워드 없이도 참조가 가능(로컬, 익명, 람다)
+        //차이점은 쉐도잉 (로컬, 익명) -> 쉐도잉 O, 람다 -> 쉐도잉 X
+
+        int baseNumber = 10;
+        //baseNumber++; //값이 변하는 경우 effective final 로 인정되지 않기 때문에 사용X
+
+        //로컬 클래스
+        class LocalClass {
+            void printBaseNumber() {
+                int baseNumber = 11;
+                System.out.println(baseNumber); //11 -> 뒤의 스콥이 앞의 스콥을 가려버림 -> 쉐도잉
+            }
+        }
+
+        //익명 클래스
+        Consumer<Integer> integerConsumer = new Consumer<Integer>() {
+            @Override
+            public void accept(Integer baseNumber) {
+                System.out.println(baseNumber); //위와 마찬가지로 쉐도잉
+            }
+        };
+
+        //람다
+        IntConsumer printInt = (num) -> {
+            //int baseNumber = 0; //람다를 감싸고 있는 스콥과 같기 때문에 같은 이름으로 변수 선언 자체를 할 수 없음
+            System.out.println(num+baseNumber); //익명 클래스는 새로 스콥을 만들지만, 람다는 람다를 감싸고 있는 스콥과 같다.
+
+        };
     }
 }
