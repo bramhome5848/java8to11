@@ -1,5 +1,6 @@
 package kr.com.lkj.java8to11;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collectors;
@@ -16,7 +17,8 @@ public class App {
         //function6();
         //function7();
         //function8();
-        function9();
+        //function9();
+        function10();
     }
 
     /**
@@ -392,5 +394,25 @@ public class App {
                 .map(OnlineClass::getTitle)
                 .collect(Collectors.toList())
                 .forEach(System.out::println);
+    }
+
+    /**
+     * Optional 소개
+     */
+    public static void function10() {
+
+        OnlineClass spring_boot = new OnlineClass(1, "spring boot", true);
+
+        //에러를 만들기 좋은 코드
+        //1. 사람이 하는 일이기 때문에 null Check를 잊는 경우가 많음
+        //2. null 자체를 리턴 하는 것이 문제
+        /*
+        Progress progress = spring_boot.getProgress();
+        if(progress !=null) {
+            System.out.println(progress.getStudyDuration());
+        }
+        */
+        Optional<Progress> progress = spring_boot.getProgress();
+        progress.ifPresent((p)-> System.out.println(p.getStudyDuration()));
     }
 }
