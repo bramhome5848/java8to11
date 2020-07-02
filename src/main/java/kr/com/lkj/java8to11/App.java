@@ -2,6 +2,8 @@ package kr.com.lkj.java8to11;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class App {
 
@@ -12,7 +14,9 @@ public class App {
         //function4();
         //function5();
         //function6();
-        function7();
+        //function7();
+        //function8();
+        function9();
     }
 
     /**
@@ -264,4 +268,129 @@ public class App {
         //따라서 확인한 이후에 람다식을 작성할 수 있도록 하는 것이 효과적
     }
 
+    /**
+     * Stream Api 소개
+     * 연속된 데이터를 처리하는 오퍼레이션들의 모음
+     * stream 자체가 데이터가 아님
+     *
+     */
+    public static void function8() {
+        List<String> names = new ArrayList<>();
+        names.add("lkj");
+        names.add("lkb");
+        names.add("lks");
+        names.add("lbj");
+
+        //스트림이 처리하는 데이터 소스를 변경하지 않는다.
+        //stream 처리는 또다른 stream
+        //스트림으로 처리하는 데이터는 오직 한번만 처리한다. -> 컨베이어 벨트에서 슥 지나감
+        List<String> collect = names.stream().map((s) -> {
+            System.out.println(s);
+            return s.toUpperCase();
+        }).collect(Collectors.toList());
+
+        collect.forEach(System.out::println);
+
+        //기존 데이터 확인 -> 기존의 데이터가 변경되지 않음
+        System.out.println("==================");
+        names.forEach(System.out::println);
+
+        /**
+         * 스트림 파이프라인
+         * - 0 또는 다수의 중개 오퍼레이션과 한개의 종료 오퍼레이션으로 구성
+         * 중계 오퍼레이션
+         * - stream 리턴 O
+         * - lazy 함 -> 터미널 오퍼레이션을 실행할 때에만 처리한다.
+         * - 위의 map에 선언된 함수 내용은 종료 오퍼레이션이 없는 경우 실행 X
+         * - 뒤에 collect와 같은 종료 오퍼레이션이 붙고 리턴형이 stream이 아니면 실행
+         * 종료 오퍼레이션 : stream 리턴 X
+         */
+
+        //병렬적 처리 -> 각각을 처리하는 thread 가 다름
+        //parallelStream 쓴다고 무조건 빠른건 아님
+        //멀티 thread 를 만들고 처리하는 비용, 처리 된 것을 비용
+        //thread 간의 context switch 비용 등등
+        //유용한 경우 -> 데이터가 정말 방대한 경우
+        List<String> collect1 = names.parallelStream().map((s) -> {
+            System.out.println(s + " " + Thread.currentThread().getName());
+            return s.toUpperCase();
+        }).collect(Collectors.toList());
+
+        collect1.forEach(System.out::println);
+    }
+
+    /**
+     * Stream Api 사용
+     */
+    public static void function9() {
+
+        List<OnlineClass> springClasses = new ArrayList<>();
+        springClasses.add(new OnlineClass(1, "spring boot", true));
+        springClasses.add(new OnlineClass(2, "spring data jpa", true));
+        springClasses.add(new OnlineClass(3, "spring mvc", false));
+        springClasses.add(new OnlineClass(4, "spring core", false));
+        springClasses.add(new OnlineClass(5, "rest api development", false));
+
+        List<OnlineClass> javaClasses = new ArrayList<>();
+        javaClasses.add(new OnlineClass(6, "The Java, Test", true));
+        javaClasses.add(new OnlineClass(7, "The Java, Code manipulation", true));
+        javaClasses.add(new OnlineClass(8, "The Java, 8 to 11", false));
+
+        List<List<OnlineClass>> lkjEvents = new ArrayList<>();
+        lkjEvents.add(springClasses);
+        lkjEvents.add(javaClasses);
+
+        System.out.println("===========================================");
+        System.out.println("spring 으로 시작하는 수업");
+
+        springClasses.stream()
+                .filter((oc) -> oc.getTitle().startsWith("spring"))
+                .forEach((oc) -> System.out.println(oc.getId()));
+
+        System.out.println("===========================================");
+        System.out.println("close 되지 않은 수업");
+
+        springClasses.stream()
+                .filter((oc) -> !oc.isClosed())
+                //.filter(Predicate.not(OnlineClasses::isClosed))   //java 11부터 Predicate not 사용 가능..
+                .forEach((oc) -> System.out.println(oc.getId()));
+
+        System.out.println("===========================================");
+        System.out.println("수업만 이름으로 모아서 스트림 만들기");
+
+        springClasses.stream()
+                .map(OnlineClass::getTitle)  // map은 요소들을 특정조건에 해당하는 값으로 변환
+                .forEach(System.out::println);
+
+        System.out.println("===========================================");
+        System.out.println("두 수업 목록에 들어 있는 모든 수업 아이디 출력");
+
+        //flat -> stream속에 존재하는 리스트들을 풀어서 모든 요소들을 평평하게..
+        lkjEvents.stream()
+                .flatMap(Collection::stream)
+                .forEach((oc) -> System.out.println(oc.getId()));
+
+        System.out.println("===========================================");
+        System.out.println("10부터 1씩 증가하는 무제한 스트림 중에서 앞에 10개 빼고 최대 10개까지만");
+
+        Stream.iterate(10, (i) -> i+1)
+                .skip(10)   //10개 스킵
+                .limit(10)
+                .forEach(System.out::println);
+
+        System.out.println("===========================================");
+        System.out.println("자바 수업 중에 Test가 들어 있는 수업이 있는지 확인");
+
+        boolean test = javaClasses.stream()
+                .anyMatch((oc) -> oc.getTitle().contains("Test"));
+        System.out.println(test);
+
+        System.out.println("===========================================");
+        System.out.println("스프링 수업 중에 제목에 spring이 들어간 제목만 모아서 List로 만들기");
+        springClasses.stream()
+                .filter((oc) -> oc.getTitle().contains("spring"))
+                .map(OnlineClass::getTitle)
+                .collect(Collectors.toList())
+                .forEach(System.out::println);
+    }
 }
