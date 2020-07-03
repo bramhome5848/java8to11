@@ -1,6 +1,9 @@
 package kr.com.lkj.java8to11;
 
-import java.time.Duration;
+import java.text.SimpleDateFormat;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collectors;
@@ -8,7 +11,7 @@ import java.util.stream.Stream;
 
 public class App {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         //unction1();
         //function2();
         //function3();
@@ -19,7 +22,9 @@ public class App {
         //function8();
         //function9();
         //function10();
-        function11();
+        //function11();
+        //function12();
+        function13();
     }
 
     /**
@@ -474,6 +479,7 @@ public class App {
         //orElseGet -> 동적으로 작업해서 만들어야 하는 경우 적합
         //orElseThrow -> 만들어서 사용할 수 없는 경우 Exception을 던짐
         //자바 10부터 (기본 NoSuchElementException)
+
         //필요한 경우 아래와 같이 던질 수 있음
         OnlineClass onlineClass3 = optional.orElseThrow(IllegalStateException::new);
         System.out.println(onlineClass3.getTitle());
@@ -498,4 +504,125 @@ public class App {
         System.out.println("creating new online class");
         return new OnlineClass(10, "New class", false);
     }
+
+    /**
+     * Date & Time 소개
+     * 자바 8에 새로운 날짜와 시간 API
+     * 기존 java.util.Date 클래스는 mutable 하기 때문에 thead safe 하지 않음
+     * 클래스 이름이 명확하지 않다. Date 인데 시간까지 다룸
+     * 버그 발생할 여지가 많음 (타입 안정성이 없고, 월이 0부터 시작한다거나)
+     */
+    public static void function12() throws InterruptedException {
+
+        Date date = new Date();
+        long time = date.getTime();
+        System.out.println(date);
+        System.out.println(time);
+
+        Thread.sleep(1000*3);
+        Date after3Seconds = new Date();
+        System.out.println(after3Seconds);
+        after3Seconds.setTime(time);    //3초 이전의 시간으로 값을 변경
+        System.out.println(after3Seconds);  //인스턴스 안의 데이터가 변경됨
+        //객체의 상태를 바꿀 수 있음 -> mutable
+
+        /**
+         *  주요 API
+         *  기계용 시간 (machine time)과 인류용 시간(human time)으로 나눌 수 있음.
+         *  기계용 시간은 EPOCK (1970년 1월 1일 0시 0분 0초)부터 현재까지의 타임스탬프를 표현
+         *  인류용 시간은 우리가 흔히 사용하는 연,월,일,시,분,초 등을 표현
+         *  타임스탬프는 Instant를 사용
+         *  특정 날짜(LocalDate), 시간(LocalTime), 일시(LocalDateTime)를 사용할 수 있음
+         *  기간을 표현할 때는 Duration (시간 기반)과 Period (날짜 기반)를 사용할 수 있음
+         *  DateTimeFormatter를 사용해서 일시를 특정한 문자열로 포매팅할 수 있음
+         */
+
+    }
+
+    /**
+     * Date & Time Api
+     */
+    public static void function13() {
+
+        /**
+         * 기계용 Api
+         */
+        Instant instant = Instant.now();
+        System.out.println(instant);    //기준시 UTC, GMT
+        System.out.println(instant.atZone(ZoneId.of("UTC")));
+
+        ZoneId zone = ZoneId.systemDefault();
+        System.out.println(zone);
+
+        ZonedDateTime zonedDateTime = instant.atZone(zone);
+        System.out.println(zonedDateTime);    //시스템 기준 시점
+
+        /**
+         * 사람용 Api
+         */
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println(now);    //시스템 zone 참고해서 가져온 로컬 시간
+
+        //생일에 해당하는 시간을 만들 수도 있음
+        LocalDateTime birthDay = LocalDateTime.of(1988, Month.MARCH, 11, 13, 21);
+        System.out.println(birthDay);
+
+        //특정 존의 현재 시간을 보고 싶음
+        ZonedDateTime nowInKorea = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+        System.out.println(nowInKorea);
+
+        Instant nowInstant = Instant.now();
+        nowInstant.atZone(ZoneId.of("Asia/Seoul"));
+        System.out.println(nowInstant);
+
+        /**
+         * 기간을 표현하는 방법
+         */
+        LocalDate today = LocalDate.now();
+        LocalDate thisYearBirthDay = LocalDate.of(2020, Month.MARCH, 11);
+        Period period = Period.between(today, thisYearBirthDay);
+        System.out.println(period.getDays());
+
+        //오늘 부터 이때까지
+        Period until = today.until(thisYearBirthDay);
+        System.out.println(until.get(ChronoUnit.DAYS));
+
+        //기계용 시간비교
+        Instant mNow = Instant.now();
+        Instant plus = mNow.plus(10, ChronoUnit.SECONDS);
+        Duration between = Duration.between(mNow, plus);
+        System.out.println(between.getSeconds());
+
+        //format
+        LocalDateTime fNow = LocalDateTime.now();
+        System.out.println(fNow);
+        DateTimeFormatter MMddyyyy = DateTimeFormatter.ofPattern("MM/dd/yyyy"); //미리 정의되어 있는 것도 많음
+        System.out.println(fNow.format(MMddyyyy));
+
+        //parsing
+        //날짜 정보와 format이 같아야 파싱되어 -> yyyy-mm-dd형태로 바뀜
+        LocalDate parse = LocalDate.parse("03/11/1988", MMddyyyy);
+        System.out.println(parse);
+
+        //예전 Api와 호환됨
+        //Date <-> Instant
+        Date date = new Date();
+        Instant dInstance = date.toInstant();
+        Date newDate = Date.from(dInstance);
+
+        //GregorianCalendar <-> LocalDateTime
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        LocalDateTime gDateTime = gregorianCalendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        ZonedDateTime zDateTime = gregorianCalendar.toInstant().atZone(ZoneId.systemDefault());
+        GregorianCalendar from = GregorianCalendar.from(zDateTime);
+
+        //TimeZone <-> ZoneId
+        ZoneId zoneId = TimeZone.getTimeZone("PST").toZoneId();
+        TimeZone timeZone = TimeZone.getTimeZone(zoneId);
+
+        //새로운 Api들은 인스턴스의 변경이 아닌 새로운 인스턴스를 만들어줌
+        //예전 방식처럼 변경만 할 경우 아무 의미 없는 코드가 됨
+    }
 }
+
