@@ -18,7 +18,8 @@ public class App {
         //function7();
         //function8();
         //function9();
-        function10();
+        //function10();
+        function11();
     }
 
     /**
@@ -414,5 +415,87 @@ public class App {
         */
         Optional<Progress> progress = spring_boot.getProgress();
         progress.ifPresent((p)-> System.out.println(p.getStudyDuration()));
+    }
+
+    /**
+     * Optional API
+     */
+    public static void function11() {
+        List<OnlineClass> springClasses = new ArrayList<>();
+        springClasses.add(new OnlineClass(1, "spring boot", true));
+        springClasses.add(new OnlineClass(5, "rest api development", false));
+
+        //optional 을 리턴 하는 operation 이 있음 -> 종료형 operation
+        Optional<OnlineClass> optional = springClasses.stream()
+                .filter((oc) -> oc.getTitle().startsWith("spring"))
+                .findFirst();
+
+        boolean present = optional.isPresent();
+        //boolean isEmpty = onlineClass.isEmpty();  //java 11부터 제공
+        System.out.println(present);
+
+        //값이 들어 있으면 관계 없이 get 을 사용할 수 있음
+        //없는 경우는 문제가 될 수 있음 -> NoSuchElementException
+        //가급적 get() 사용하지 않는 것을 권장
+        /*
+        if(optional.isPresent()){
+            OnlineClass onlineClass = optional.get();
+            System.out.println(onlineClass.getTitle());
+        }
+        */
+        
+        //이런 코드로 바꾸는 것을 권장
+        optional.ifPresent((oc) -> System.out.println(oc.getTitle()));
+
+        //orElse -> Optional 에 값이 있든 없든 무조건 실행(가장 안쪽 함수니까)
+        //실행은 되지만 Optional 에 값이 있으면 그 값으로 채우고
+        //없는 경우는 실행된 함수의 리턴 값을 채움
+        /**
+         *  public T orElse(T other) {
+         *     return value != null ? value : other;
+         *  }
+         */
+
+        OnlineClass onlineClass1 = optional.orElse(createNewClasses());
+        System.out.println(onlineClass1.getTitle());
+
+        //orElseGet -> Optional에 값이 있는 경우 함수를 실행하지 않음
+        //lazy하게 처리 가능, 없는 경우 인터페이스에 등록된 get 실행
+
+        /**
+         * public T orElseGet(Supplier<? extends T> other) {
+         *     return value != null ? value : other.get();
+         *}
+         */
+        OnlineClass onlineClass2 = optional.orElseGet(App::createNewClasses);
+        System.out.println(onlineClass2.getTitle());
+
+        //orElse -> 이미 만들어져 있는 인스턴의 경우 참고해서 사용하는 경우 적합
+        //orElseGet -> 동적으로 작업해서 만들어야 하는 경우 적합
+        //orElseThrow -> 만들어서 사용할 수 없는 경우 Exception을 던짐
+        //자바 10부터 (기본 NoSuchElementException)
+        //필요한 경우 아래와 같이 던질 수 있음
+        OnlineClass onlineClass3 = optional.orElseThrow(IllegalStateException::new);
+        System.out.println(onlineClass3.getTitle());
+
+        //있다는 가정하에 사용 -> 없는 경우에는 비어있는 optional 리턴
+        Optional<OnlineClass> onlineClass4 = optional.filter(OnlineClass::isClosed);
+        System.out.println(onlineClass4.isPresent());
+        
+        //맵도 사용 가능
+        Optional<Integer> integer = optional.map(OnlineClass::getId);
+        System.out.println(integer.isPresent());
+
+        //Optional로 뽑은 타입이 또 optional인 경우 -> flatMap
+        Optional<Progress> progress = optional.flatMap(OnlineClass::getProgress);
+
+        //일반 map을 사용할 경우 2번
+        Optional<Optional<Progress>> progress1 = optional.map(OnlineClass::getProgress);
+        Optional<Progress> progress2 = progress1.orElse(Optional.empty());
+    }
+
+    private static OnlineClass createNewClasses() {
+        System.out.println("creating new online class");
+        return new OnlineClass(10, "New class", false);
     }
 }
